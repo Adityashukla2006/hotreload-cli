@@ -21,13 +21,24 @@ var ignoredDirs = map[string]bool{
 	"vendor":       true,
 	"dist":         true,
 	"build":        true,
+	"bin":          true,
+	"out":          true,
+	"target":       true,
 	".idea":        true,
 	".vscode":      true,
 }
 
 // ignoredExtensions lists file suffixes we ignore.
 var ignoredExtensions = map[string]bool{
-	".tmp": true, ".swp": true, ".swx": true, "~": true, ".orig": true,
+	".tmp": true,
+	".temp": true,
+	".swp": true,
+	".swo": true,
+	".swx": true,
+	".orig": true,
+	".bak": true,
+	".rej": true,
+	".old": true,
 }
 
 // Watcher recursively monitors a directory tree for file changes.
