@@ -1,62 +1,52 @@
-	/*
-	Copyright © 2026 NAME HERE <EMAIL ADDRESS>
+package cmd
 
-	*/
-	package cmd
+import (
+	"fmt"
+	"os"
 
-	import (
-		"os"
-		"fmt"
-		"github.com/spf13/cobra"
-	)
+	"hotreload/internal"
 
+	"github.com/spf13/cobra"
+)
 
+var (
+	rootDir  string
+	buildCmd string
+	execCmd  string
+)
 
-	// rootCmd represents the base command when called without any subcommands
-	var rootCmd = &cobra.Command{
-		Use:   "hotreload",
-		Short: "A brief description of your application",
-		Long: `A longer description that spans multiple lines and likely contains
-	examples and usage of using your application. For example:
+var rootCmd = &cobra.Command{
+	Use:   "hotreload",
+	Short: "Watch a project for changes and automatically rebuild and restart your server",
+	Long: `hotreload watches a directory for file changes and automatically rebuilds
+and restarts your server. Ideal for Go development with instant feedback.
 
-	Cobra is a CLI library for Go that empowers applications.
-	This application is a tool to generate the needed files
-	to quickly create a Cobra application.`,
-		// Uncomment the following line if your bare application
-		// has an action associated with it:
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Root directory:", rootDir)
-			fmt.Println("Build command:", buildCmd)
-			fmt.Println("Exec command:", execCmd)
-		},
+Example:
+  hotreload --root ./myproject --build "go build -o ./bin/server ./cmd/server" --exec "./bin/server"`,
+	RunE: runHotReload,
+}
+
+func init() {
+	rootCmd.Flags().StringVarP(&rootDir, "root", "r", ".", "Directory to watch for file changes (recursive)")
+	rootCmd.Flags().StringVarP(&buildCmd, "build", "b", "", "Command to build the project when changes are detected")
+	rootCmd.Flags().StringVarP(&execCmd, "exec", "e", "", "Command to run the server after a successful build")
+
+	rootCmd.MarkFlagRequired("build")
+	rootCmd.MarkFlagRequired("exec")
+}
+
+func runHotReload(cmd *cobra.Command, args []string) error {
+	if buildCmd == "" || execCmd == "" {
+		return fmt.Errorf("--build and --exec are required")
 	}
 
-	// Execute adds all child commands to the root command and sets flags appropriately.
-	// This is called by main.main(). It only needs to happen once to the rootCmd.
-	func Execute() {
-		err := rootCmd.Execute()
-		if err != nil {
-			os.Exit(1)
-		}
+	sup := internal.NewSupervisor(rootDir, buildCmd, execCmd)
+	return sup.Run()
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
-	var rootDir string
-	var buildCmd string
-	var execCmd string
-
-	func init() {
-		// Here you will define your flags and configuration settings.
-		// Cobra supports persistent flags, which, if defined here,
-		// will be global for your application.
-
-		// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hotreload.yaml)")
-
-		// Cobra also supports local flags, which will only run
-		// when this action is called directly.
-		rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
-		rootCmd.PersistentFlags().StringVarP(&rootDir,"root","r",".","Directory to watch for file changes (including all subfolders)")
-		rootCmd.PersistentFlags().StringVarP(&buildCmd,"build","b","","Command to build the application")
-		rootCmd.PersistentFlags().StringVarP(&execCmd,"exec","e","","Command to execute the application")
-	}
-
-
+}
