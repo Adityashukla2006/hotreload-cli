@@ -14,7 +14,7 @@ go build -o ./bin/hotreload .
 
 On Windows, use backslashes for the exec path:
 ```bash
-./bin/hotreload.exe --root ./testserver --build "go build -o ./bin/testserver.exe ./testserver" --exec "bin\testserver.exe"
+./bin/hotreload.exe --root ./testserver --build "go build -buildvcs=false -o ./bin/testserver.exe ./testserver" --exec ".\bin\testserver.exe"
 ```
 
 ## Usage

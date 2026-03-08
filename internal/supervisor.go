@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"log/slog"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -98,6 +99,12 @@ func (s *Supervisor) triggerRebuild() {
 	s.mu.Unlock()
 
 	s.log.Info("Change detected, rebuilding...")
+
+	// On Windows, a running .exe cannot be overwritten.
+	// Stop first so `go build -o ...` can replace the target binary.
+	if runtime.GOOS == "windows" && s.process.IsRunning() {
+		s.process.Stop()
+	}
 
 	// Build first; only stop/restart if build succeeds
 	if err := s.builder.Build(s.log); err != nil {
